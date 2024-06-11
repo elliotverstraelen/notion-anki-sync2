@@ -73,6 +73,14 @@ Notion API is used, the addon may break without a warning.
 - Some toggle blocks are empty on export which leads to empty Anki notes. The issue is on the Notion side (and they're
   aware of it).
 
+## TODO:
+
+- Add option to use headers (H1, H2, H3) as hierarchy to build subdecks
+- Allow users to define custom note types in Anki and map different Notion blocks to these custom note types.
+- Implement a bi-directional sync that not only pulls data from Notion to Anki but also pushes updates from Anki back to Notion (for hot fixes furing learning).
+- Enhance error handling and provide detailed error reports to the user, including suggestions for resolving common issues like when deck names or IDs dont match
+- Add option to add tags to headers preceding the toggles that apply to all the toggles undernearth (to avoid having to add them manually)
+  
 ## Configuration parameters
 
 - `debug`: `bool [default: false]` — enable debug logging to file.
