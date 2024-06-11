@@ -20,11 +20,13 @@ The `notion_pages` section should look like that:
 "notion_pages": [
     {
       "page_id": "<page_id1>",
-      "recursive": false
+      "recursive": false,
+      "target_deck": "Math"
     },
     {
       "page_id": "<page_id2>",
-      "recursive": true
+      "recursive": true,
+      "target_deck": "Biology"
     }
   ]
 ```

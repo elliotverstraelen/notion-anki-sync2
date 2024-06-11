@@ -59,7 +59,7 @@ class NotesManager:
         self.logger = get_logger(self.__class__.__name__, debug)
         self.collection = collection
         self.deck_name = deck_name
-        self.deck = self.get_deck()
+        self.deck = self.get_deck(self.deck_name)  # Pass deck_name to get_deck
         self.create_models()
 
     @property
@@ -139,12 +139,13 @@ class NotesManager:
         cloze_model.pop('css')
         self.logger.info(f'Cloze model updated: {cloze_model}')
 
-    def get_deck(self) -> int:
+    def get_deck(self, deck_name: str) -> int:
         """Get or create target deck.
 
-        :returns: working deck
+        :param deck_name: name of the target deck
+        :returns: deck id
         """
-        deck_id = self.collection.decks.id(self.deck_name, create=True)
+        deck_id = self.collection.decks.id(deck_name, create=True)
         assert deck_id  # mypy
         return deck_id
 
@@ -186,10 +187,11 @@ class NotesManager:
                 target[field_name] = new_value
         return updated_data
 
-    def create_note(self, note: AnkiNote) -> int:
-        """Create new note.
+    def create_note_in_deck(self, note: AnkiNote, deck_name: str) -> int:
+        """Create new note in specified deck.
 
         :param note: note
+        :param deck_name: target deck name
         :returns: id of the note created
         """
         # Pick the model
@@ -199,7 +201,7 @@ class NotesManager:
             model = self.collection.models.by_name(self.MODEL_NAME)
         # Create a note and add it to the deck
         anki_note = Note(self.collection, model)
-        deck_id = self.get_deck()
+        deck_id = self.get_deck(deck_name)
         self.collection.add_note(anki_note, deck_id)
         # Upload note media
         media_manager = self.collection.media
@@ -228,6 +230,14 @@ class NotesManager:
             'Note created: id=%s, front=%s', note_id, safe_str(note.front)
         )
         return note_id
+
+    def create_note(self, note: AnkiNote) -> int:
+        """Create new note in default deck.
+
+        :param note: note
+        :returns: id of the note created
+        """
+        return self.create_note_in_deck(note, self.deck_name)
 
     def update_note(self, note_id: int, note: AnkiNote) -> bool:
         """Update existing note.

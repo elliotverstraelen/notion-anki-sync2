@@ -12,9 +12,8 @@ from aqt import mw
 from aqt.gui_hooks import main_window_did_init
 from aqt.utils import showCritical, showInfo
 from jsonschema import ValidationError, validate
-from PyQt6.QtCore import QObject, QRunnable, QThreadPool, QTimer, pyqtSignal
-from PyQt6.QtGui import QAction
-from PyQt6.QtWidgets import QMenu, QMessageBox
+from PyQt5.QtCore import QObject, QRunnable, QThreadPool, QTimer, pyqtSignal
+from PyQt5.QtWidgets import QAction, QMenu, QMessageBox
 
 from .helpers import (
     BASE_DIR,
@@ -197,9 +196,9 @@ class NotionSyncPlugin(QObject):
                     is_updated = self.notes_manager.update_note(note_id, note)
                     if is_updated:
                         self._updated += 1
-                # Create new note
+                # Create new note in the target deck
                 else:
-                    note_id = self.notes_manager.create_note(note)
+                    note_id = self.notes_manager.create_note_in_deck(note, note.target_deck)
                     self._created += 1
                 self.synced_note_ids.add(note_id)
         except Exception:
@@ -332,12 +331,14 @@ class NotionSyncPlugin(QObject):
         for page_spec in self.config.get('notion_pages', []):
             page_id = page_spec['page_id']
             recursive = page_spec.get('recursive', False)
+            target_deck = page_spec.get('target_deck', self.config.get('anki_target_deck', self.DEFAULT_DECK_NAME))
             page_id = normalize_block_id(page_id)
             worker = NotesExtractorWorker(
                 notion_token=self.config['notion_token'],
                 page_id=page_id,
                 recursive=recursive,
                 notion_namespace=self.config.get('notion_namespace', ''),
+                target_deck=target_deck,
                 debug=self.debug,
             )
             worker.signals.result.connect(self.handle_worker_result)
@@ -360,14 +361,13 @@ class NoteExtractorSignals(QObject):
 
 
 class NotesExtractorWorker(QRunnable):
-    """Notes extractor worker thread."""
-
     def __init__(
         self,
         notion_token: str,
         page_id: str,
         recursive: bool,
         notion_namespace: str,
+        target_deck: str,
         debug: bool = False,
     ):
         """Init notes extractor.
@@ -376,6 +376,7 @@ class NotesExtractorWorker(QRunnable):
         :param page_id: Notion page id
         :param recursive: recursive export
         :param notion_namespace: Notion namespace to form source links
+        :param target_deck: target deck in Anki
         :param debug: debug log level
         """
         super().__init__()
@@ -386,6 +387,7 @@ class NotesExtractorWorker(QRunnable):
         self.page_id = page_id
         self.recursive = recursive
         self.notion_namespace = notion_namespace
+        self.target_deck = target_deck
 
     def run(self) -> None:
         """Extract note data from given Notion page.
@@ -419,6 +421,9 @@ class NotesExtractorWorker(QRunnable):
                         debug=self.debug,
                     )
                 self.logger.info('Notes extracted: count=%s', len(notes))
+                # Attach target deck to each note
+                for note in notes:
+                    note.target_deck = self.target_deck
         except NotionClientError as exc:
             self.logger.error('Error extracting notes', exc_info=exc)
             error_msg = f'Cannot export {self.page_id}:\n{exc}'
