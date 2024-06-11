@@ -48,15 +48,17 @@ Edit plugin config file from Anki: `Tools ➡ Add-ons ➡ Notion Toggles Loader 
   "sync_every_minutes": 30,
   "anki_target_deck": "Notion Sync",
   "notion_token": "<your_notion_token_here>",
-  "notion_namespace": "<your_notion_username_here",
+  "notion_namespace": "<your_notion_username_here>",
   "notion_pages": [
     {
       "page_id": "<page_id1>",
-      "recursive": false
+      "recursive": false,
+      "target_deck": "Math"
     },
     {
       "page_id": "<page_id2>",
-      "recursive": true
+      "recursive": true,
+      "target_deck": "Biology"
     }
   ]
 }
@@ -77,12 +79,12 @@ Notion API is used, the addon may break without a warning.
 
 - `debug`: `bool [default: false]` — enable debug logging to file.
 - `sync_every_minutes`: `int [default: 30]` — auto sync interval in minutes. Set to 0 to disable auto sync.
-- `anki_target_deck`: `str [default: "Notion Sync"]` — the deck loaded notes will be added to.
+- `anki_target_deck`: `str [default: "Notion Sync"]` —  the default deck loaded notes will be added to, if not specified in the notion pages.
 - `notion_token`: `str [default: None]` — Notion APIv2 token.
 - `notion_namespace`: `str [default: None]` — Notion namespace (your username) to form source URLs.
 - `notion_pages`: `array [default: [] ]` — List of Notion pages to export notes from.
 
-
-## Inspiration
+Additional Information
+This fork is based on the unmaintained [notion-toggles loader](https://github.com/9dogs/notion-anki-sync) plugin. The enhancements are intended to provide added functionality to the original plugin.
 
 This project is inspired by a great [Notion to Anki](https://github.com/alemayhu/Notion-to-Anki).
